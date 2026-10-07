@@ -1,0 +1,123 @@
+name: Build APK and IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+env:
+  APP_ID: com.taixiuvanh.game
+  APP_NAME: Tài Xỉu VAnh
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Tạo project Capacitor
+        run: |
+          mkdir www && cp index.html www/index.html
+          python3 - <<'PY'
+          import re
+          p = "www/index.html"
+          s = open(p, encoding="utf8").read()
+          # 1) chặn bôi đen chữ / menu giữ-chạm của iOS
+          css = "<style>*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}</style>"
+          assert "</head>" in s
+          s = s.replace("</head>", css + "</head>", 1)
+          # 2) giải mã nhạc sẵn lúc ở menu, để lần chạm đầu không bị đứng hình
+          old = ('const b64=document.getElementById("mp3-"+k).textContent.trim(),bin=atob(b64),u8=new Uint8Array(bin.length);\n'
+                 '    for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);\n'
+                 '    const a=new Audio(URL.createObjectURL(new Blob([u8],{type:"audio/mpeg"})));')
+          new = 'const a=new Audio(trackUrl(k));'
+          helper = ('const _tu={};\n'
+                    '  function trackUrl(k){if(_tu[k])return _tu[k];const b64=document.getElementById("mp3-"+k).textContent.trim(),bin=atob(b64),u8=new Uint8Array(bin.length);'
+                    'for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return _tu[k]=URL.createObjectURL(new Blob([u8],{type:"audio/mpeg"}))}\n'
+                    '  setTimeout(()=>{try{trackUrl("theme")}catch(_){}},2500);setTimeout(()=>{try{trackUrl("boss")}catch(_){}},4500);\n'
+                    '  function makeAudio(k){')
+          if old in s and "  function makeAudio(k){" in s:
+              s = s.replace("  function makeAudio(k){", "  " + helper, 1).replace(old, new, 1)
+              print("Da va phan nhac")
+          else:
+              print("CANH BAO: khong tim thay doan giai ma nhac, bo qua")
+          open(p, "w", encoding="utf8").write(s)
+          PY
+          npm init -y >/dev/null
+          npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          printf '{"appId":"%s","appName":"%s","webDir":"www","ios":{"scrollEnabled":false,"contentInset":"never"}}' "$APP_ID" "$APP_NAME" > capacitor.config.json
+          npx cap add android
+          sed -i 's/android:name="\.MainActivity"/& android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml
+          npx cap sync android
+      - name: Build APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Tạo project Capacitor
+        run: |
+          mkdir www && cp index.html www/index.html
+          python3 - <<'PY'
+          import re
+          p = "www/index.html"
+          s = open(p, encoding="utf8").read()
+          # 1) chặn bôi đen chữ / menu giữ-chạm của iOS
+          css = "<style>*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}</style>"
+          assert "</head>" in s
+          s = s.replace("</head>", css + "</head>", 1)
+          # 2) giải mã nhạc sẵn lúc ở menu, để lần chạm đầu không bị đứng hình
+          old = ('const b64=document.getElementById("mp3-"+k).textContent.trim(),bin=atob(b64),u8=new Uint8Array(bin.length);\n'
+                 '    for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);\n'
+                 '    const a=new Audio(URL.createObjectURL(new Blob([u8],{type:"audio/mpeg"})));')
+          new = 'const a=new Audio(trackUrl(k));'
+          helper = ('const _tu={};\n'
+                    '  function trackUrl(k){if(_tu[k])return _tu[k];const b64=document.getElementById("mp3-"+k).textContent.trim(),bin=atob(b64),u8=new Uint8Array(bin.length);'
+                    'for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return _tu[k]=URL.createObjectURL(new Blob([u8],{type:"audio/mpeg"}))}\n'
+                    '  setTimeout(()=>{try{trackUrl("theme")}catch(_){}},2500);setTimeout(()=>{try{trackUrl("boss")}catch(_){}},4500);\n'
+                    '  function makeAudio(k){')
+          if old in s and "  function makeAudio(k){" in s:
+              s = s.replace("  function makeAudio(k){", "  " + helper, 1).replace(old, new, 1)
+              print("Da va phan nhac")
+          else:
+              print("CANH BAO: khong tim thay doan giai ma nhac, bo qua")
+          open(p, "w", encoding="utf8").write(s)
+          PY
+          npm init -y >/dev/null
+          npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/ios@7
+          printf '{"appId":"%s","appName":"%s","webDir":"www","ios":{"scrollEnabled":false,"contentInset":"never"}}' "$APP_ID" "$APP_NAME" > capacitor.config.json
+          npx cap add ios
+          P=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" $P || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" $P
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" $P
+          npx cap sync ios
+      - name: Build app chưa ký
+        run: |
+          if [ -d ios/App/App.xcworkspace ]; then TARGET="-workspace ios/App/App.xcworkspace"; else TARGET="-project ios/App/App.xcodeproj"; fi
+          xcodebuild $TARGET -scheme App -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      - name: Đóng gói IPA
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr game-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: game-unsigned.ipa
