@@ -1,0 +1,48 @@
+========================================
+  ÚP BÁT TÀI XỈU — HƯỚNG DẪN CÀI PWA
+========================================
+
+CÁCH 1: CÀI TRÊN IPHONE (như app)
+---------------------------------
+1. Giải nén file zip này
+2. Upload thư mục lên bất kỳ host nào (hoặc dùng ứng dụng
+   kiểu "Documents", "Files", "HTTP Server" để host local)
+3. Mở Safari trên iPhone → vào địa chỉ file upbat.html
+4. Bấm nút Share (ô vuông có mũi tên)
+5. Chọn "Thêm vào Màn hình chính" (Add to Home Screen)
+6. Đặt tên "Úp Bát" → Thêm
+7. Icon xuất hiện trên màn hình → mở như app thật
+   (full màn hình, có âm thanh lắc xúc xắc)
+
+CÁCH 2: CHƠI TRỰC TIẾP (không cần cài)
+--------------------------------------
+- Mở file upbat.html bằng trình duyệt bất kỳ
+  (Chrome, Safari, Edge, Firefox...)
+- Chơi ngay, có âm thanh
+
+CÁCH 3: HOST LOCAL TRÊN IPHONE
+------------------------------
+1. Cài app "Documents by Readdle" hoặc "a-Shell" / "iSH"
+2. Copy thư mục upbat-pwa vào app
+3. Bật HTTP server trong app
+4. Mở Safari → localhost:... → Add to Home Screen
+
+LUẬT CHƠI
+---------
+- Mỗi bát có 3 xúc xắc
+- Tài = tổng 11–17 | Xỉu = tổng 4–10
+- Chọn Tài hoặc Xỉu → 2 bát tự úp lại
+- Lắc 2 bát:
+  + Thắng cả 2 bát → nhận x2 tiền cược
+  + 1 đúng 1 sai  → hoàn tiền (hòa)
+  + Thua cả 2     → mất tiền cược
+- Hết tiền tự nạp lại 10.000 ₫
+
+FILE TRONG GÓI
+--------------
+upbat.html     → game chính
+manifest.json  → cấu hình PWA
+icon.svg       → icon app
+HUONG-DAN-PWA.txt → file này
+
+========================================

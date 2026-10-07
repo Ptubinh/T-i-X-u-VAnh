@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Úp Bát">
+<meta name="theme-color" content="#0f2027">
+<link rel="manifest" href="manifest.json">
+<title>Úp Bát Tài Xỉu - 2 Bát</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  h1 {
+    font-size: 1.7rem;
+    margin-bottom: 8px;
+    text-shadow: 0 0 12px #ffd700;
+    text-align: center;
+  }
+  .money {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    background: rgba(0,0,0,0.4);
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid #ffd700;
+  }
+  .money span { color: #ffd700; font-weight: bold; }
+  .table {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .bowl-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .bowl-label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffd700;
+  }
+  .bowl {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at 40% 30%, #8b4513, #5c2e0a);
+    border-radius: 50%;
+    border: 5px solid #3d1f05;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.6), 0 6px 16px rgba(0,0,0,0.5);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bowl:active { transform: scale(1.04); }
+  .bowl.covered::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 40% 30%, #a0522d, #6b3a1a);
+    border-radius: 50%;
+    border: 5px solid #3d1f05;
+    box-shadow: inset 0 0 35px rgba(0,0,0,0.7);
+  }
+  .dice {
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    background: #222;
+    border-radius: 50%;
+    margin: auto;
+  }
+  .dot.hide { visibility: hidden; }
+  .controls {
+    background: rgba(0,0,0,0.5);
+    padding: 16px 22px;
+    border-radius: 16px;
+    border: 1px solid #ffd70055;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 360px;
+  }
+  .bet-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .bet-btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bet-btn.tai { background: #e74c3c; color: #fff; }
+  .bet-btn.xiu { background: #3498db; color: #fff; }
+  .bet-btn:active { filter: brightness(1.15); }
+  .bet-btn.active { outline: 3px solid #ffd700; }
+  input[type="number"] {
+    width: 110px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ffd700;
+    background: #111;
+    color: #ffd700;
+    font-size: 1.15rem;
+    text-align: center;
+  }
+  .action-btn {
+    padding: 14px 40px;
+    font-size: 1.15rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(90deg, #f1c40f, #e67e22);
+    color: #111;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(241,196,15,0.4);
+    transition: 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .action-btn:active { transform: scale(1.05); }
+  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .result {
+    margin-top: 10px;
+    font-size: 1.05rem;
+    min-height: 52px;
+    text-align: center;
+    line-height: 1.45;
+  }
+  .result.win { color: #2ecc71; }
+  .result.lose { color: #e74c3c; }
+  .result.draw { color: #f1c40f; }
+  .history {
+    margin-top: 14px;
+    font-size: 0.8rem;
+    opacity: 0.85;
+    max-width: 360px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>🎲 Úp Bát Tài Xỉu — 2 Bát</h1>
+  <div class="money">Tiền: <span id="balance">10000</span> ₫</div>
+
+  <div class="table">
+    <div class="bowl-wrap">
+      <div class="bowl-label">BÁT 1</div>
+      <div class="bowl covered" id="bowl1"></div>
+    </div>
+    <div class="bowl-wrap">
+      <div class="bowl-label">BÁT 2</div>
+      <div class="bowl covered" id="bowl2"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="bet-row">
+      <button class="bet-btn tai" id="btnTai" onclick="setBet('tai')">TÀI (11-17)</button>
+      <button class="bet-btn xiu" id="btnXiu" onclick="setBet('xiu')">XỈU (4-10)</button>
+    </div>
+    <div>
+      Cược: <input type="number" id="betAmount" value="500" min="100" step="100">
+    </div>
+    <button class="action-btn" id="shakeBtn" onclick="shake()">LẮC 2 BÁT</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="history" id="history"></div>
+
+<script>
+  let balance = 10000;
+  let currentBet = null;
+  let shaking = false;
+  let history = [];
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playShakeSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const duration = 1.3;
+    const bufferSize = audioCtx.sampleRate * duration;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / audioCtx.sampleRate;
+      const env = Math.exp(-t * 2.2) * (0.55 + 0.45 * Math.sin(t * 45));
+      data[i] = (Math.random() * 2 - 1) * env * 0.38;
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 780;
+    filter.Q.value = 1.1;
+    source.connect(filter);
+    filter.connect(audioCtx.destination);
+    source.start();
+  }
+
+  function playWinSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(784, audioCtx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  }
+
+  function playLoseSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.35);
+  }
+
+  function createDiceFace(value) {
+    const positions = {
+      1: [4],
+      2: [0, 8],
+      3: [0, 4, 8],
+      4: [0, 2, 6, 8],
+      5: [0, 2, 4, 6, 8],
+      6: [0, 2, 3, 5, 6, 8]
+    };
+    const dice = document.createElement('div');
+    dice.className = 'dice';
+    for (let i = 0; i < 9; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (positions[value].includes(i) ? '' : ' hide');
+      dice.appendChild(dot);
+    }
+    return dice;
+  }
+
+  function coverBowls() {
+    const bowl1 = document.getElementById('bowl1');
+    const bowl2 = document.getElementById('bowl2');
+    bowl1.classList.add('covered');
+    bowl2.classList.add('covered');
+    bowl1.innerHTML = '';
+    bowl2.innerHTML = '';
+  }
+
+  function setBet(type) {
+    if (shaking) return;
+    currentBet = type;
+    document.getElementById('btnTai').classList.toggle('active', type === 'tai');
+    document.getElementById('btnXiu').classList.toggle('active', type === 'xiu');
+    coverBowls();
+    document.getElementById('result').textContent = '';
+    document.getElementById('result').className = 'result';
+  }
+
+  function updateBalance() {
+    document.getElementById('balance').textContent = balance.toLocaleString('vi-VN');
+  }
+
+  function rollDice() {
+    return [
+      Math.floor(Math.random() * 6) + 1,
+      Math.floor(Math.random() * 6) + 1,
+      Math.floor(Math.random() * 6) + 1
+    ];
+  }
+
+  function shake() {
+    if (shaking) return;
+    if (!currentBet) {
+      document.getElementById('result').textContent = 'Chọn Tài hoặc Xỉu trước!';
+      document.getElementById('result').className = 'result';
+      return;
+    }
+    const amount = parseInt(document.getElementById('betAmount').value) || 0;
+    if (amount < 100) {
+      document.getElementById('result').textContent = 'Cược tối thiểu 100 ₫';
+      return;
+    }
+    if (amount > balance) {
+      document.getElementById('result').textContent = 'Không đủ tiền!';
+      return;
+    }
+
+    shaking = true;
+    document.getElementById('shakeBtn').disabled = true;
+    document.getElementById('result').textContent = 'Đang lắc 2 bát...';
+    document.getElementById('result').className = 'result';
+
+    coverBowls();
+    playShakeSound();
+
+    const bowl1 = document.getElementById('bowl1');
+    const bowl2 = document.getElementById('bowl2');
+
+    let shakeCount = 0;
+    const shakeInterval = setInterval(() => {
+      const dx = (Math.random() - 0.5) * 14;
+      const dy = (Math.random() - 0.5) * 10;
+      const rot = (Math.random() - 0.5) * 12;
+      bowl1.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      bowl2.style.transform = `translate(${-dx}px, ${-dy}px) rotate(${-rot}deg)`;
+      shakeCount++;
+      if (shakeCount > 20) {
+        clearInterval(shakeInterval);
+        bowl1.style.transform = '';
+        bowl2.style.transform = '';
+        reveal(amount);
+      }
+    }, 55);
+  }
+
+  function reveal(amount) {
+    const dice1 = rollDice();
+    const dice2 = rollDice();
+    const total1 = dice1[0] + dice1[1] + dice1[2];
+    const total2 = dice2[0] + dice2[1] + dice2[2];
+    const isTai1 = total1 >= 11;
+    const isTai2 = total2 >= 11;
+
+    const bowl1 = document.getElementById('bowl1');
+    const bowl2 = document.getElementById('bowl2');
+    bowl1.classList.remove('covered');
+    bowl2.classList.remove('covered');
+    bowl1.innerHTML = '';
+    bowl2.innerHTML = '';
+    dice1.forEach(v => bowl1.appendChild(createDiceFace(v)));
+    dice2.forEach(v => bowl2.appendChild(createDiceFace(v)));
+
+    let winCount = 0;
+    if ((currentBet === 'tai' && isTai1) || (currentBet === 'xiu' && !isTai1)) winCount++;
+    if ((currentBet === 'tai' && isTai2) || (currentBet === 'xiu' && !isTai2)) winCount++;
+
+    const resultEl = document.getElementById('result');
+    let msg = `Bát1: ${dice1.join('+')}=${total1} (${isTai1 ? 'Tài' : 'Xỉu'}) | Bát2: ${dice2.join('+')}=${total2} (${isTai2 ? 'Tài' : 'Xỉu'})<br>`;
+
+    if (winCount === 2) {
+      balance += amount * 2;
+      msg += `THẮNG CẢ 2! +${(amount * 2).toLocaleString('vi-VN')} ₫`;
+      resultEl.className = 'result win';
+      playWinSound();
+    } else if (winCount === 1) {
+      msg += `HÒA (1 đúng 1 sai) — hoàn ${amount.toLocaleString('vi-VN')} ₫`;
+      resultEl.className = 'result draw';
+    } else {
+      balance -= amount;
+      msg += `THUA CẢ 2! -${amount.toLocaleString('vi-VN')} ₫`;
+      resultEl.className = 'result lose';
+      playLoseSound();
+    }
+
+    resultEl.innerHTML = msg;
+    updateBalance();
+
+    history.unshift(`B1:${total1} B2:${total2}`);
+    if (history.length > 6) history.pop();
+    document.getElementById('history').textContent = 'Lịch sử: ' + history.join(' | ');
+
+    shaking = false;
+    document.getElementById('shakeBtn').disabled = false;
+
+    if (balance <= 0) {
+      resultEl.innerHTML += '<br>Hết tiền! Nạp lại 10.000 ₫';
+      balance = 10000;
+      updateBalance();
+    }
+  }
+
+  document.getElementById('bowl1').addEventListener('click', () => { if (!shaking) shake(); });
+  document.getElementById('bowl2').addEventListener('click', () => { if (!shaking) shake(); });
+
+  updateBalance();
+</script>
+</body>
+</html>

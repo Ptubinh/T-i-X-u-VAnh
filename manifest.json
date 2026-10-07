@@ -1,0 +1,18 @@
+{
+  "name": "Úp Bát Tài Xỉu",
+  "short_name": "Úp Bát",
+  "description": "Game úp bát tài xỉu 2 bát, 3 xúc xắc mỗi bát",
+  "start_url": "./upbat.html",
+  "display": "standalone",
+  "background_color": "#0f2027",
+  "theme_color": "#0f2027",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
